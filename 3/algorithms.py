@@ -97,24 +97,20 @@ def dist(points):
     return dist
 
 
-### not working currently! maybe an issue in the split/what minimum distance you return and how that works with px, py
 def shortest_path(px, py):
     assert isinstance(px, list) and isinstance(py, list), "data must be list of tuples"
     assert len(px) == len(py), "lists must be same length"
     if len(px) <= 4:
         #base case
-        distsx = [(p, dist(p)) for p in combinations(px, 2)]
-        distsy = [(p, dist(p)) for p in combinations(py, 2)]
-        dists = distsx + distsy
-        return sorted(dists, key=lambda x: [1])[0][0]
+        dists = [(p, dist(p)) for p in combinations(px, 2)]
+        srted = sorted(dists, key=lambda x: x[1])[0][0]
+        return srted
 
     # need to sort points by x and y
-    left, right = divide_points(px, py)
+    left, right = divide_points(px, py)  # check this! not sure how to divide points as they're now different points in px and py
 
     first_pair = shortest_path(left[0], left[1]) # a tuple of two tuples
     second_pair = shortest_path(right[0], right[1]) # a tuple of two tuples
-    import ipdb
-    ipdb.set_trace()
 
     delta = min([dist(first_pair), dist(second_pair)])
     third_pair = closest_split_pair(px, py, delta)
@@ -148,17 +144,118 @@ def closest_pair(points):
 ###############
 # unsorted array second largest elemenet
 
+def largest(points):
+    if len(points) <= 2:
+        return max(points), [point for point in points if point != max(points)]
+    largest_left, compared_list_left = largest(points[:len(points)//2])
+    largest_right, compared_list_right = largest(points[len(points)//2:])
+    if largest_left > largest_right:
+        largest_ = largest_left
+        compared_list = compared_list_left + [largest_right]
+    else:
+        largest_ = largest_right
+        compared_list = compared_list_right + [largest_left]
 
+    return largest_, compared_list
+
+def second_largest(points):
+    largest_, compared_list = largest(points)
+    return max(compared_list)
 
 
 ###############
 # unimodal array find max
 
+def max_element(points):
+    if len(points) == 3:
+        return max(points)
+    left_half, right_half = points[:len(points)//2], points[len(points)//2:]
+    
+    if right_half[0] > right_half[1]:
+        return max_element(left_half)
+    else:
+        return max_element(right_half)
 
 ###############
 # sorted array find if A[i]=i and where
 
-
+def find_ai_i(points, ind=0):
+    #import ipdb
+    #ipdb.set_trace()
+    if len(points) == 1:
+        if points[0] == ind:
+            return points
+        else:
+            return
+    left_points , right_points = points[:len(points)//2], points[len(points)//2:]
+    if left_points[-1] >= (len(left_points) -1 + ind):
+        return find_ai_i(left_points, ind + 0)
+    else:
+        return find_ai_i(right_points, ind + len(left_points))
 
 ###############
 # nxn grid find a local minimum in O(n)
+
+### NOT FINISHED
+
+def is_min(array, rowind, colind):
+    tocheck = [[-1,1], [-1,1]]
+    min_value = array[rowind, colind]
+    if colind == 0:
+        # then we're on an edge
+        tocheck[1][0] = None
+    elif colind == array.shape[1]:
+        # then we're on an edge
+        tocheck[1][1] = None
+    elif rowind == 0:
+         #  then we're on top or bottom
+        tocheck[0][0] = None
+    elif rowind == array.shape[0]:
+        #  then we're on top or bottom
+        tocheck[0][1] = None
+
+    # rows first
+    for val in tocheck[0]:
+        if array[rowind + val, colind] < array[rowind, colind]:
+            return
+    for val in tocheck[1]:
+        if array[rowind, colind + val] < array[rowind, colind]:
+            return
+    return array[rowind, colind]
+
+def get_strips(array):
+    shape = array.shape
+    ledge = [array[i,0] for i in range(shape[0])]
+    redge = [array[i,-1] for i in range(shape[0])]
+    bedge = [array[-1,i] for i in range(shape[1])]
+    tedge = [array[0,i] for i in range(shape[1])]
+    middle_row = [array[shape[0]//2, i] for i in range(shape[1])]
+    middle_col = [array[i,shape[1]//2] for i in range(shape[0])]
+    
+    return np.array([ledge, redge, bedge, tedge, middle_row, middle_col])
+
+import numpy as np
+def find_local_min(array:np.ndarray):
+    strips = get_strips(array)
+    import ipdb
+    ipdb.set_trace()
+
+    min_value = min(ledge+redge+bedge+tedge+middle_row+middle_col)
+    if min(ledge) == min_value:
+        ismin = is_min(array, np.argmin(ledge), colind=0)
+        if ismin:
+            return ismin
+        else:
+            find_local_min(array[])
+    elif min(redge) == min_value:
+
+    elif min(bedge) == min_value:
+
+    elif min(tedge) == min_value:
+
+    elif min(middle_col) == min_value:
+
+    elif min(middle_row) == min_value:
+
+
+
